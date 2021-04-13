@@ -1,7 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
 const cors = require('cors');
+const Person = require('./models/person');
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('build'));
@@ -42,7 +45,9 @@ app.get('/', (request, response) => {
 });
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons);
+  Person.find({}).then((persons) => {
+    res.json(persons);
+  });
 });
 
 app.get('/info', (req, res) => {
@@ -52,13 +57,9 @@ app.get('/info', (req, res) => {
 });
 
 app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === id);
-  if (person) {
+  Person.findById(req.params.id).then((person) => {
     res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  });
 });
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -86,20 +87,20 @@ app.post('/api/persons', (req, res) => {
     });
   }
 
-  const person = {
-    id: generateID(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
+  });
 
-  persons = persons.concat(person);
-  res.json(person);
+  person.save().then((savedPerson) => {
+    res.json(person);
+  });
 });
 
-const generateID = () => {
-  const id = Math.floor(Math.random() * 500);
-  return id;
-};
+// const generateID = () => {
+//   const id = Math.floor(Math.random() * 500);
+//   return id;
+// };
 
 const unknownEndpoint = (req, res) => {
   res.status(404).send({ error: 'unknown endpoint' });
