@@ -17,8 +17,6 @@ app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 );
 
-const opts = { runValidators: true };
-
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -56,7 +54,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch((err) => next(err));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
     .then(() => {
       res.status(204).end();
@@ -85,7 +83,7 @@ app.post('/api/persons', (req, res, next) => {
 
   person
     .save()
-    .then((savedPerson) => {
+    .then(() => {
       res.json(person);
     })
     .catch((err) => next(err));
