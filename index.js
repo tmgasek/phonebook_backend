@@ -17,6 +17,8 @@ app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 );
 
+const opts = { runValidators: true };
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -84,7 +86,7 @@ app.post('/api/persons', (req, res, next) => {
   person
     .save()
     .then((savedPerson) => {
-      res.json(savedPerson);
+      res.json(person);
     })
     .catch((err) => next(err));
 });
@@ -97,7 +99,11 @@ app.put('/api/persons/:id', (req, res, next) => {
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: 'query',
+  })
     .then((updatedPerson) => {
       res.json(updatedPerson);
     })
@@ -115,7 +121,7 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'CastError') {
     return res.status(400).send({ error: 'malformatted id' });
   } else if (err.name === 'ValidationError') {
-    return res.status(400).json({ error: error.message });
+    return res.status(400).json(err.message);
   }
   next(err);
 };
